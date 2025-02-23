@@ -1,0 +1,12 @@
+version: '3.6'
+
+services:
+  space_ace:
+    image: johncapobianco/space_ace:space_ace
+    container_name: space_ace
+    restart: always
+    build:
+      context: ./
+      dockerfile: ./docker/Dockerfile
+    ports:
+      - "8501:8501"
