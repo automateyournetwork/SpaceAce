@@ -69,7 +69,7 @@ tool_descriptions = "\n".join([f"{tool.name}: {tool.description}" for tool in to
 astros_prompt = PromptTemplate(
     input_variables=["input", "agent_scratchpad"],
     template="""
-    You are tracking the astronaughts in space along with the spacecraft they are on. Your job is to provide the information about the humans in space.
+    You are tracking the astronauts in space along with the spacecraft they are on. Your job is to provide the information about the humans in space.
 
     **FORMAT:**  
     Thought: [Your reasoning]  
