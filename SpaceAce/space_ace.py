@@ -13,7 +13,7 @@ from iss_locator import tools as iss_tools, iss_prompt
 from astros import tools as astros_tools, astros_prompt
 
 # IMPORT THE WEATHER AGENT
-from weather import tools as weather_tool, weather_prompt
+from weather import tools as weather_tools, weather_prompt
 
 # ============================================================
 # **🚀 Load Environment Variables**
@@ -58,7 +58,7 @@ astros_agent = initialize_agent(
 # **🌍 Initialize the Weather Agent**
 # ============================================================
 weather_agent = initialize_agent(
-    tools=weather_tool, 
+    tools=weather_tools, 
     llm=llm, 
     agent='zero-shot-react-description', 
     prompt=weather_prompt, 
@@ -101,7 +101,7 @@ weather_tool = Tool(
 # ============================================================
 # **🤖 Main Parent Routing Agent**
 # ============================================================
-parent_tools = [iss_tool, astros_tool, weather_tool]
+parent_tools = [iss_tool, astros_tool, *weather_tools]
 
 parent_agent = initialize_agent(
     tools=parent_tools,
