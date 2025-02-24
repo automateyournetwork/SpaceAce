@@ -12,6 +12,9 @@ from iss_locator import tools as iss_tools, iss_prompt
 ## IMPORT ISS LOCATOR AGENT
 from astros import tools as astros_tools, astros_prompt
 
+# IMPORT THE WEATHER AGENT
+from weather import tools as weather_tool, weather_prompt
+
 # ============================================================
 # **🚀 Load Environment Variables**
 # ============================================================
@@ -51,6 +54,17 @@ astros_agent = initialize_agent(
     verbose=True
 )
 
+# ============================================================
+# **🌍 Initialize the Weather Agent**
+# ============================================================
+weather_agent = initialize_agent(
+    tools=weather_tool, 
+    llm=llm, 
+    agent='zero-shot-react-description', 
+    prompt=weather_prompt, 
+    verbose=True
+)
+
 # Define ISS Agent Function
 def iss_agent_func(input_text: str) -> str:
     return iss_agent.invoke(f"ISS: {input_text}")
@@ -58,6 +72,10 @@ def iss_agent_func(input_text: str) -> str:
 # Define Astros Agent Function
 def astros_agent_func(input_text: str) -> str:
     return astros_agent.invoke(f"Astronauts: {input_text}")
+
+# Define Astros Agent Function
+def weather_agent_func(input_text: str) -> str:
+    return weather_agent.invoke(f"Weather: {input_text}")
 
 # Create a LangChain Tool for ISS Agent
 iss_tool = Tool(
@@ -73,10 +91,17 @@ astros_tool = Tool(
     description="Use this to retrieve information about the humans in space and their spacecraft."
 )
 
+# Create a LangChain Tool for Astros Agent
+weather_tool = Tool(
+    name="The Current Weather at a location on Earth",
+    func=weather_agent_func,
+    description="Use this to retrieve information about the current weather at a given latitude and longitude."
+)
+
 # ============================================================
 # **🤖 Main Parent Routing Agent**
 # ============================================================
-parent_tools = [iss_tool, astros_tool]
+parent_tools = [iss_tool, astros_tool, weather_tool]
 
 parent_agent = initialize_agent(
     tools=parent_tools,
@@ -91,7 +116,7 @@ logging.info(f"🚀 Main Parent Routing Agent Initialized with Tools: {[tool.nam
 # **🛰️ Streamlit UI - Chat with the ISS Agent**
 # ============================================================
 st.title("🌌 Chat with the Space Ace")
-st.write("Ask real-time questions about the Space!")
+st.write("Ask real-time questions about Space!")
 
 # User input text area
 user_input = st.text_area("🚀 Enter your space-related question:")
