@@ -93,8 +93,31 @@ def astros_agent_func(input_text: str) -> str:
 def weather_agent_func(input_text: str) -> str:
     return weather_agent.invoke(f"Weather: {input_text}")
 
-def apod_agent_func(input_text: str) -> str:
-    return apod_agent.invoke(input_text)
+def apod_agent_func(input_text: str) -> dict:
+    """
+    Fetch NASA APOD data, extract the image URL, and return a structured response.
+    """
+    response = apod_agent.invoke(input_text)
+    logging.info(f"🛰️ Raw APOD Response: {response}")
+
+    # ✅ Extract text response
+    apod_text = response.get("output", "No valid response received.")
+
+    # ✅ Improved URL extraction
+    url_match = re.search(r'\[.*?\]\((https?://\S+?\.jpg|\.png|\.jpeg|\.gif)\)', apod_text)  # Markdown embedded link
+    if not url_match:
+        url_match = re.search(r'(https?://\S+?\.jpg|\.png|\.jpeg|\.gif)', apod_text)  # Direct image URL
+
+    apod_image_url = url_match.group(1) if url_match else None
+
+    # ✅ Remove trailing punctuation that could break URL formatting
+    if apod_image_url:
+        apod_image_url = apod_image_url.rstrip(")., ")
+
+    return {
+        "text": apod_text,
+        "image_url": apod_image_url
+    }
 
 # Create a LangChain Tool for ISS Agent
 iss_tool = Tool(
@@ -171,6 +194,10 @@ if st.button("Send"):
         url_match = re.search(r'(https?://\S+)', apod_text)  # Find any URL in text
         apod_image_url = url_match.group(1) if url_match else None
 
+        # ✅ Fix: Remove trailing characters that break the URL
+        if apod_image_url:
+            apod_image_url = apod_image_url.rstrip(")., ")
+
         # ✅ Display AI Agent's response
         st.write(f"### **🛰️ Question:** {user_input}")
         st.write(f"### **📡 Response:** {apod_text}")
@@ -182,7 +209,7 @@ if st.button("Send"):
         # ✅ Display APOD Image if Available
         if apod_image_url:
             if apod_image_url.endswith(('.jpg', '.png', '.jpeg', '.gif')):
-                st.image(apod_image_url, caption="📸 NASA Astronomy Picture of the Day", use_column_width=True)
+                st.image(apod_image_url, caption="📸 NASA Astronomy Picture of the Day", use_container_width =True)
             elif "youtube.com" in apod_image_url or "vimeo.com" in apod_image_url:
                 st.video(apod_image_url)
             else:
