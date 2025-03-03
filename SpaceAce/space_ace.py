@@ -1,4 +1,5 @@
 import os
+import re
 import logging
 import streamlit as st
 import urllib3
@@ -163,17 +164,12 @@ if st.button("Send"):
         response = parent_agent.invoke(user_input)
         logging.info(f"🛰️ Raw LLM Response Before Parsing:\n{response}")
 
-        # ✅ Ensure response is properly formatted
-        if isinstance(response, dict):  
-            # 🔥 Fix: Extract the correct output field
-            apod_text = response.get("output", "No valid response received.")  
-            
-            # 🔥 Fix: Extract the correct media URL
-            apod_image_url = response.get("url", None)  
-        elif isinstance(response, str):  
-            apod_text = response
-        else:
-            apod_text = "No valid response received."
+        # ✅ Extract text response
+        apod_text = response.get("output", "No valid response received.")
+
+        # ✅ Extract image URL from text
+        url_match = re.search(r'(https?://\S+)', apod_text)  # Find any URL in text
+        apod_image_url = url_match.group(1) if url_match else None
 
         # ✅ Display AI Agent's response
         st.write(f"### **🛰️ Question:** {user_input}")
@@ -183,12 +179,14 @@ if st.button("Send"):
         st.session_state.conversation.append({"role": "user", "content": user_input})
         st.session_state.conversation.append({"role": "assistant", "content": apod_text})
 
-        # ✅ Ensure APOD Image or Video Displays Correctly
+        # ✅ Display APOD Image if Available
         if apod_image_url:
-            if "youtube.com" in apod_image_url or "vimeo.com" in apod_image_url:  
-                st.video(apod_image_url)  # If it's a video, display it
-            else:
+            if apod_image_url.endswith(('.jpg', '.png', '.jpeg', '.gif')):
                 st.image(apod_image_url, caption="📸 NASA Astronomy Picture of the Day", use_column_width=True)
+            elif "youtube.com" in apod_image_url or "vimeo.com" in apod_image_url:
+                st.video(apod_image_url)
+            else:
+                st.write(f"🔗 [View Full Image]({apod_image_url})")
 
 # ============================================================
 # **📜 Display Conversation History**
